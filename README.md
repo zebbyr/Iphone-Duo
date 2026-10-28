@@ -6,12 +6,12 @@ and pushes an alert to your phone when any store has it. Runs on GitHub Actions.
 | Source | What it checks | Notes |
 |---|---|---|
 | Apple Store | Part MK1H4LL/A | Pick **AT&T** at checkout, or buy unlocked; both work on AT&T |
-| Best Buy | AT&T model, SKU 6525562 | Official Best Buy API; needs a free key |
+| Best Buy | AT&T model, SKU 6525562 | Off unless you have a Best Buy API key (they now require a business email) |
 | AT&T stores | Not covered | AT&T has no public stock API |
 
 ## Setup
 1. Install the **ntfy** app and subscribe to a hard-to-guess topic, e.g. `iphoneduo-92075-k8q2x7`.
-2. Get a free Best Buy API key at https://developer.bestbuy.com (sign up → key emailed/shown).
+2. Optional: Best Buy API key from https://developer.bestbuy.com (requires a business/custom-domain email).
 3. Repo **Settings → Secrets and variables → Actions → New repository secret**:
    - `NTFY_TOPIC` = your topic name
    - `BESTBUY_API_KEY` = your Best Buy key (without it, only Apple is checked)
