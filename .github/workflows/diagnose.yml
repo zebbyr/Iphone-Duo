@@ -5,13 +5,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          UA='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36'
-          B='https://www.apple.com/shop/fulfillment-messages'
-          try() { code=$(curl -s -o out.txt -w '%{http_code}' -A "$UA" -H 'Accept: application/json' -b jar -c jar "$2"); echo "== $1 -> $code"; head -c 400 out.txt; echo; }
-          try "encoded slash"      "$B?pl=true&mts.0=regular&parts.0=MK1H4LL%2FA&location=92075"
-          try "raw slash"          "$B?pl=true&mts.0=regular&parts.0=MK1H4LL/A&location=92075"
-          try "raw + searchNearby" "$B?pl=true&mts.0=regular&mts.1=compact&parts.0=MK1H4LL/A&searchNearby=true&location=92075"
-          try "known-good iPhone 16 part" "$B?pl=true&mts.0=regular&parts.0=MYMJ3LL/A&location=92075"
-          curl -s -o /dev/null -w "== product page -> %{http_code}\n" -A "$UA" -b jar -c jar https://www.apple.com/shop/buy-iphone/iphone-duo
-          try "raw after cookies"  "$B?pl=true&mts.0=regular&parts.0=MK1H4LL/A&location=92075"
-          try "retail availability" "https://www.apple.com/shop/retail/pickup-message?parts.0=MK1H4LL/A&location=92075"
+          curl -s -A 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36' \
+            'https://www.apple.com/shop/retail/pickup-message?pl=true&parts.0=MK1H4LL/A&location=92075' > r.json
+          python3 - <<'PY'
+          import json
+          d = json.load(open("r.json"))
+          b = d.get("body", {})
+          print("body keys:", list(b))
+          for s in b.get("stores", [])[:12]:
+              pa = s.get("partsAvailability", {})
+              print(s.get("storeNumber"), s.get("storeName"), s.get("city"), s.get("storedistance"),
+                    s.get("storeDistanceWithUnit"), "| keys:", list(pa))
+              for k, v in pa.items():
+                  print("   ", k, {x: v.get(x) for x in ("pickupDisplay","pickupSearchQuote","storePickupQuote","storeSelectionEnabled","storePickEligible")})
+          PY
