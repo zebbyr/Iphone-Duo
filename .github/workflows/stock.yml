@@ -29,10 +29,10 @@ jobs:
           key: stock-state-${{ github.run_id }}
           restore-keys: stock-state-
 
-      - name: Check Apple Store pickup near 92075
+      - name: Check Apple + Best Buy pickup near 92075
         env:
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
-          PART: MK1H4LL/A
+          BESTBUY_API_KEY: ${{ secrets.BESTBUY_API_KEY }}
           ZIP: "92075"
           MAX_MILES: "50"
           TEST_NOTIFY: ${{ inputs.test_notify || 'false' }}

@@ -1,27 +1,29 @@
-# iPhone Duo stock tracker (92075)
+# iPhone Duo stock tracker (92075, AT&T)
 
-Checks Apple's store-pickup availability for **iPhone Duo 512GB Night Sky (MK1H4LL/A)**
-at Apple Stores within 50 miles of 92075 and pushes an alert to your phone the moment
-one shows "available". Runs on GitHub Actions. Nothing to host.
+Watches in-store pickup stock for **iPhone Duo 512GB Night Sky** within 50 miles of 92075
+and pushes an alert to your phone when any store has it. Runs on GitHub Actions.
 
-## Setup (5 minutes)
-1. Install the **ntfy** app (iOS/Android, free).
-2. In the app, subscribe to a hard-to-guess topic, e.g. `iphoneduo-92075-k8q2x7`.
-   Anyone who knows the topic name can read it, so don't use something obvious.
-3. In this repo: **Settings → Secrets and variables → Actions → New repository secret**
-   - Name: `NTFY_TOPIC` — Value: your topic name.
-4. **Actions** tab → "iPhone Duo stock check" → **Run workflow** → tick
-   "Send a test notification only". You should get a push within a few seconds.
-5. Done. It checks every 30 minutes on its own.
+| Source | What it checks | Notes |
+|---|---|---|
+| Apple Store | Part MK1H4LL/A | Pick **AT&T** at checkout, or buy unlocked; both work on AT&T |
+| Best Buy | AT&T model, SKU 6525562 | Official Best Buy API; needs a free key |
+| AT&T stores | Not covered | AT&T has no public stock API |
 
-## How often it checks
-- **Private repo (current):** once every ~30 min, to stay inside the free 2,000 Actions minutes/month.
-- **Public repo:** polls every 60 seconds continuously (Actions minutes are free for public repos).
-  The code holds no secrets, so making the repo public is safe; your topic stays in Secrets.
+## Setup
+1. Install the **ntfy** app and subscribe to a hard-to-guess topic, e.g. `iphoneduo-92075-k8q2x7`.
+2. Get a free Best Buy API key at https://developer.bestbuy.com (sign up → key emailed/shown).
+3. Repo **Settings → Secrets and variables → Actions → New repository secret**:
+   - `NTFY_TOPIC` = your topic name
+   - `BESTBUY_API_KEY` = your Best Buy key (without it, only Apple is checked)
+4. **Settings → General → Danger Zone → Change visibility → Public.**
+   Public repos get unlimited free Actions minutes, so it checks every ~60 seconds.
+   Private repos only check every ~30 minutes. Secrets stay hidden either way.
+5. **Actions** tab → "iPhone Duo stock check" → **Run workflow** → tick
+   "Send a test notification only". The push lists which stores are being watched.
 
 ## When an alert fires
-Tap it → Apple's buy page → choose pickup → pick the listed store. Stock disappears in
-minutes, so check out immediately. You get one alert per store per restock.
+Tap it to open that retailer's page and reserve pickup immediately. One alert per store per restock.
 
 ## If it breaks
-If Apple blocks the request, the run fails and GitHub emails you. Check the Actions logs.
+If a retailer blocks the request or a key is wrong, the run fails and GitHub emails you.
+The other retailer keeps being checked. See the Actions logs for details.
