@@ -67,16 +67,18 @@ def to_miles(v):
 # Each source returns a list of stores: {id, name, city, miles, available, quote, url}
 
 def check_apple():
-    qs = urllib.parse.urlencode({"pl": "true", "mts.0": "regular",
-                                 "parts.0": APPLE_PART, "location": ZIP})
-    data = get_json(f"https://www.apple.com/shop/fulfillment-messages?{qs}", {
+    # /shop/fulfillment-messages now returns 541 "Page Not Found"; this one works.
+    qs = urllib.parse.urlencode({"pl": "true", "parts.0": APPLE_PART, "location": ZIP},
+                                safe="/")
+    data = get_json(f"https://www.apple.com/shop/retail/pickup-message?{qs}", {
         "User-Agent": BROWSER_UA,
         "Accept": "application/json, text/plain, */*",
         "Accept-Language": "en-US,en;q=0.9",
         "Referer": APPLE_URL,
     })
-    stores = (data.get("body", {}).get("content", {})
-                  .get("pickupMessage", {}).get("stores", [])) or []
+    body = data.get("body", {})
+    stores = (body.get("stores")
+              or body.get("content", {}).get("pickupMessage", {}).get("stores") or [])
     out = []
     for s in stores:
         pa = (s.get("partsAvailability") or {}).get(APPLE_PART, {})
