@@ -179,7 +179,12 @@ def check_once(alerted, failed):
 
 
 def main():
+    if not NTFY_TOPIC:
+        print("ERROR: NTFY_TOPIC secret is not set, so alerts can't reach your phone.",
+              file=sys.stderr)
     if os.environ.get("TEST_NOTIFY", "").lower() == "true":
+        if not NTFY_TOPIC:
+            return 1
         names = ", ".join(n for n, _ in SOURCES)
         notify("Tracker test", f"Notifications work. Watching {PRODUCT} near {ZIP} at: {names}.",
                priority="default", tags="white_check_mark")
@@ -200,6 +205,8 @@ def main():
             break
         time.sleep(INTERVAL + random.uniform(-5, 5))
 
+    if not NTFY_TOPIC:
+        return 1  # fail so GitHub emails you; a tracker that can't alert is broken
     broken = [n for n, ok in ever_ok.items() if not ok]
     if broken:
         # Fail the run so GitHub emails you that part of the tracker is broken.

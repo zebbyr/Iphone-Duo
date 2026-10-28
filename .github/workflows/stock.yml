@@ -36,9 +36,9 @@ jobs:
           ZIP: "92075"
           MAX_MILES: "50"
           TEST_NOTIFY: ${{ inputs.test_notify || 'false' }}
-          # Private repo: one check per run (fits the free 2,000 min/month).
-          # Public repo: Actions minutes are free, so poll every 60s for 29 min.
-          LOOP_SECONDS: ${{ github.event.repository.private && '0' || '1740' }}
+          # Scheduled run on a public repo: poll every 60s for 29 min (minutes are free).
+          # Private repo or manual run: one quick check.
+          LOOP_SECONDS: ${{ (github.event_name == 'schedule' && !github.event.repository.private) && '1740' || '0' }}
           INTERVAL: "60"
         run: python3 check_stock.py
 
