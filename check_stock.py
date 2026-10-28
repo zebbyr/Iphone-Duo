@@ -14,7 +14,7 @@ Standard library only. Config via environment variables:
   APPLE_PART       default MK1H4LL/A
   BESTBUY_SKU      default 6525562 (AT&T)
   LOOP_SECONDS     Keep polling this long        (default 0 = check once)
-  INTERVAL         Seconds between polls         (default 60)
+  INTERVAL         Seconds between polls         (default 45)
   STATE_FILE       Remembers stores already alerted (default state.json)
   TEST_NOTIFY      "true" sends a test push and exits
 """
@@ -33,7 +33,7 @@ BESTBUY_API_KEY = os.environ.get("BESTBUY_API_KEY", "").strip()
 APPLE_PART = os.environ.get("APPLE_PART", "MK1H4LL/A")
 BESTBUY_SKU = os.environ.get("BESTBUY_SKU", "6525562")
 LOOP_SECONDS = int(os.environ.get("LOOP_SECONDS", "0"))
-INTERVAL = int(os.environ.get("INTERVAL", "60"))
+INTERVAL = int(os.environ.get("INTERVAL", "45"))
 STATE_FILE = os.environ.get("STATE_FILE", "state.json")
 PRODUCT = "iPhone Duo 512GB Night Sky"
 
@@ -197,12 +197,22 @@ def main():
     alerted = load_state()
     deadline = time.time() + LOOP_SECONDS
     ever_ok = {n: False for n, _ in SOURCES}
+    streak = {n: 0 for n, _ in SOURCES}  # consecutive failures per source
     while True:
         failed = set()
         alerted = check_once(alerted, failed)
         save_state(alerted)
         for n in ever_ok:
             ever_ok[n] |= n not in failed
+            streak[n] = streak[n] + 1 if n in failed else 0
+            # Long runs only email at the end, so push a heads-up after ~10 min of errors.
+            if streak[n] == 12:
+                try:
+                    notify("Tracker problem", f"{n} checks have failed 12 times in a row. "
+                           "See the GitHub Actions log.", priority="default", tags="warning",
+                           click="https://github.com/zebbyr/Iphone-Duo/actions")
+                except Exception as e:
+                    print("warning push failed:", e, file=sys.stderr)
         if time.time() + INTERVAL > deadline:
             break
         time.sleep(INTERVAL + random.uniform(-5, 5))

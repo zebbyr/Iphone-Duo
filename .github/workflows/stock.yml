@@ -2,12 +2,18 @@ name: iPhone Duo stock check
 
 on:
   schedule:
-    # Every 30 min. GitHub may delay scheduled runs by several minutes.
-    - cron: "*/30 * * * *"
+    # Off-peak minutes (GitHub drops/delays runs at :00 and :30 under load).
+    # Each run watches ~5h45m; the next queued run takes over when it ends,
+    # so coverage is continuous even if a scheduled start is late.
+    - cron: "7,37 * * * *"
   workflow_dispatch:
     inputs:
       test_notify:
         description: "Send a test notification only"
+        type: boolean
+        default: false
+      watch:
+        description: "Keep watching for ~5h45m (like a scheduled run)"
         type: boolean
         default: false
 
@@ -18,7 +24,7 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 355
     steps:
       - uses: actions/checkout@v4
 
@@ -36,10 +42,10 @@ jobs:
           ZIP: "92075"
           MAX_MILES: "50"
           TEST_NOTIFY: ${{ inputs.test_notify || 'false' }}
-          # Scheduled run on a public repo: poll every 60s for 29 min (minutes are free).
-          # Private repo or manual run: one quick check.
-          LOOP_SECONDS: ${{ (github.event_name == 'schedule' && !github.event.repository.private) && '1740' || '0' }}
-          INTERVAL: "60"
+          # Scheduled run on a public repo: poll every ~45s for 5h45m (minutes are free).
+          # Private repo or plain manual run: one quick check.
+          LOOP_SECONDS: ${{ ((github.event_name == 'schedule' || inputs.watch) && !github.event.repository.private) && '20700' || '0' }}
+          INTERVAL: "45"
         run: python3 check_stock.py
 
       - name: Save alert memory
