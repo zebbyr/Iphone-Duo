@@ -14,7 +14,7 @@ Standard library only. Config via environment variables:
   APPLE_PART       default MK1H4LL/A
   BESTBUY_SKU      default 6525562 (AT&T)
   LOOP_SECONDS     Keep polling this long        (default 0 = check once)
-  INTERVAL         Seconds between polls         (default 45)
+  INTERVAL         Seconds between polls         (default 300)
   STATE_FILE       Remembers stores already alerted (default state.json)
   TEST_NOTIFY      "true" sends a test push and exits
 """
@@ -33,7 +33,7 @@ BESTBUY_API_KEY = os.environ.get("BESTBUY_API_KEY", "").strip()
 APPLE_PART = os.environ.get("APPLE_PART", "MK1H4LL/A")
 BESTBUY_SKU = os.environ.get("BESTBUY_SKU", "6525562")
 LOOP_SECONDS = int(os.environ.get("LOOP_SECONDS", "0"))
-INTERVAL = int(os.environ.get("INTERVAL", "45"))
+INTERVAL = int(os.environ.get("INTERVAL", "300"))
 STATE_FILE = os.environ.get("STATE_FILE", "state.json")
 PRODUCT = "iPhone Duo 512GB Night Sky"
 
@@ -205,17 +205,17 @@ def main():
         for n in ever_ok:
             ever_ok[n] |= n not in failed
             streak[n] = streak[n] + 1 if n in failed else 0
-            # Long runs only email at the end, so push a heads-up after ~10 min of errors.
-            if streak[n] == 12:
+            # Long runs only email at the end, so push a heads-up after ~15 min of errors.
+            if streak[n] == max(3, 900 // INTERVAL):
                 try:
-                    notify("Tracker problem", f"{n} checks have failed 12 times in a row. "
+                    notify("Tracker problem", f"{n} checks have failed {streak[n]} times in a row. "
                            "See the GitHub Actions log.", priority="default", tags="warning",
                            click="https://github.com/zebbyr/Iphone-Duo/actions")
                 except Exception as e:
                     print("warning push failed:", e, file=sys.stderr)
         if time.time() + INTERVAL > deadline:
             break
-        time.sleep(INTERVAL + random.uniform(-5, 5))
+        time.sleep(INTERVAL + random.uniform(-10, 10))
 
     if not NTFY_TOPIC:
         return 1  # fail so GitHub emails you; a tracker that can't alert is broken

@@ -46,10 +46,10 @@ jobs:
           ZIP: "92075"
           MAX_MILES: "50"
           TEST_NOTIFY: ${{ inputs.test_notify || 'false' }}
-          # Scheduled run on a public repo: poll every ~45s for 5h45m (minutes are free).
+          # Scheduled/watch run on a public repo: poll every 5 min for 5h45m.
           # Private repo or plain manual run: one quick check.
           LOOP_SECONDS: ${{ ((github.event_name == 'schedule' || inputs.watch) && !github.event.repository.private) && '20700' || '0' }}
-          INTERVAL: "45"
+          INTERVAL: "300"
         run: python3 check_stock.py
 
       - name: Save alert memory

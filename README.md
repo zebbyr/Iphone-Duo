@@ -16,7 +16,7 @@ and pushes an alert to your phone when any store has it. Runs on GitHub Actions.
    - `NTFY_TOPIC` = your topic name
    - `BESTBUY_API_KEY` = your Best Buy key (without it, only Apple is checked)
 4. **Settings → General → Danger Zone → Change visibility → Public.**
-   Public repos get unlimited free Actions minutes, so it checks every ~45 seconds, around the clock.
+   Public repos get unlimited free Actions minutes, so it checks every 5 minutes, around the clock.
    Private repos only check every ~30 minutes. Secrets stay hidden either way.
 5. **Actions** tab → "iPhone Duo stock check" → **Run workflow** → tick
    "Send a test notification only". The push lists which stores are being watched.
